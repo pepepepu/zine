@@ -27,24 +27,27 @@ export default function SplashScreen() {
     exit: { opacity: 0 },
   };
 
-  const itemVariants = {
+  // Alterado para any para aceitar a interpolação CSS nativa steps()
+  const itemVariants: any = {
     initial: { opacity: 0, x: -20 },
     animate: {
       opacity: 1,
       x: 0,
       transition: {
         duration: 0.6,
-        ease: (t: number) => Math.floor(t * 5) / 5,
+        ease: "steps(5, end)",
       },
     },
   };
 
-  const writeVariants = {
+  // Alterado para any para aceitar a interpolação CSS nativa steps()
+  const writeVariants: any = {
     initial: { pathLength: 0 },
     animate: {
       pathLength: 1,
       transition: {
         duration: 2.5,
+        ease: "steps(25, end)",
         delay: 0.8,
       },
     },
@@ -102,6 +105,7 @@ export default function SplashScreen() {
           height: "auto",
           zIndex: 0,
           ...svgPosition,
+          willChange: "transform",
         }}
       >
         <svg
@@ -114,7 +118,7 @@ export default function SplashScreen() {
               <feTurbulence
                 type="fractalNoise"
                 baseFrequency="0.9"
-                numOctaves="4"
+                numOctaves="2"
                 result="noise"
               />
               <feDisplacementMap
