@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import type { ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -114,6 +114,7 @@ const createLogoData = (): string => {
 export default function DownloadScreen() {
   const navigate = useNavigate();
   const [isDownloading, setIsDownloading] = useState(false);
+  const [showBrowserWarning, setShowBrowserWarning] = useState(false);
   const location = useLocation();
   const images = location.state?.images || Array(8).fill(null);
 
@@ -122,9 +123,7 @@ export default function DownloadScreen() {
     const isInAppBrowser = /Instagram|FBAN|FBAV/i.test(ua);
 
     if (isInAppBrowser) {
-      alert(
-        "O navegador do Instagram bloqueia downloads diretos.\n\nPara baixar seu zine, clique nos 3 pontinhos no canto superior da tela e escolha 'Abrir no navegador' (Chrome/Safari).",
-      );
+      setShowBrowserWarning(true);
       return;
     }
 
@@ -263,6 +262,7 @@ export default function DownloadScreen() {
         alignItems: "center",
         padding: "60px 30px",
         fontFamily: '"Martian Mono", monospace',
+        position: "relative",
       }}
     >
       <div
@@ -460,6 +460,110 @@ export default function DownloadScreen() {
           </g>
         </WigglySvg>
       </div>
+
+      <AnimatePresence>
+        {showBrowserWarning && (
+          <motion.div
+            initial={{ opacity: 0, y: -50, x: "-50%" }}
+            animate={{ opacity: 1, y: 0, x: "-50%" }}
+            exit={{ opacity: 0, y: -50, x: "-50%" }}
+            style={{
+              position: "absolute",
+              top: "40px",
+              left: "50%",
+              width: "300px",
+              padding: "24px",
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+              alignItems: "center",
+              zIndex: 100,
+            }}
+          >
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                pointerEvents: "none",
+              }}
+            >
+              <WigglySvg
+                id="warning-border"
+                viewBox="0 0 300 160"
+                baseFrequency="0.015 0.02"
+                scale="4"
+                dur="0.4s"
+                preserveAspectRatio="none"
+              >
+                <rect
+                  x="4"
+                  y="4"
+                  width="292"
+                  height="152"
+                  fill="var(--color-bg)"
+                  stroke="var(--color-blue)"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </WigglySvg>
+            </div>
+
+            <button
+              onClick={() => setShowBrowserWarning(false)}
+              style={{
+                position: "absolute",
+                top: "12px",
+                right: "12px",
+                width: "24px",
+                height: "24px",
+                background: "transparent",
+                border: "none",
+                cursor: "pointer",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                zIndex: 2,
+              }}
+            >
+              <WigglySvg
+                id="close-warning"
+                viewBox="0 0 24 24"
+                baseFrequency="0.02 0.03"
+                scale="5"
+                dur="0.3s"
+              >
+                <path
+                  d="M18 6L6 18M6 6l12 12"
+                  stroke="var(--color-blue)"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  fill="none"
+                />
+              </WigglySvg>
+            </button>
+
+            <p
+              style={{
+                color: "var(--color-blue)",
+                fontWeight: 600,
+                fontSize: "12px",
+                lineHeight: "1.6",
+                textAlign: "left",
+                zIndex: 1,
+                margin: 0,
+              }}
+            >
+              O navegador do Instagram bloqueia downloads diretos.
+              <br />
+              <br />
+              Para baixar seu zine, clique nos 3 pontinhos no canto superior da
+              tela e escolha "Abrir no navegador".
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }
