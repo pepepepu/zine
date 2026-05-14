@@ -1,10 +1,74 @@
-import { motion } from "framer-motion";
-import { useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useMemo, useState } from "react";
+import type { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { path1Z } from "../svgData/zine-z";
 
+interface WigglySvgProps {
+  children: ReactNode;
+  id: string;
+  viewBox: string;
+  baseFrequency?: string;
+  scale?: string;
+  dur?: string;
+  preserveAspectRatio?: string;
+}
+
+const WigglySvg = ({
+  children,
+  id,
+  viewBox,
+  baseFrequency = "0.03 0.04",
+  scale = "1.5",
+  dur = "0.4s",
+  preserveAspectRatio = "xMidYMid meet",
+}: WigglySvgProps) => (
+  <svg
+    width="100%"
+    height="100%"
+    viewBox={viewBox}
+    preserveAspectRatio={preserveAspectRatio}
+    style={{ overflow: "visible" }}
+  >
+    <defs>
+      <filter
+        id={`wiggle-${id}`}
+        x="-20%"
+        y="-20%"
+        width="140%"
+        height="140%"
+        colorInterpolationFilters="sRGB"
+      >
+        <feTurbulence
+          type="fractalNoise"
+          baseFrequency={baseFrequency}
+          numOctaves="3"
+          result="noise"
+        >
+          <animate
+            attributeName="seed"
+            values="0;1;2;3"
+            dur={dur}
+            calcMode="discrete"
+            repeatCount="indefinite"
+          />
+        </feTurbulence>
+        <feDisplacementMap
+          in="SourceGraphic"
+          in2="noise"
+          scale={scale}
+          xChannelSelector="R"
+          yChannelSelector="G"
+        />
+      </filter>
+    </defs>
+    <g filter={`url(#wiggle-${id})`}>{children}</g>
+  </svg>
+);
+
 export default function SplashScreen() {
   const navigate = useNavigate();
+  const [showInfo, setShowInfo] = useState(false);
 
   const svgPosition = useMemo(() => {
     const v1 = Math.floor(Math.random() * 41) + 110;
@@ -109,7 +173,7 @@ export default function SplashScreen() {
               <feDisplacementMap
                 in="SourceGraphic"
                 in2="noise"
-                scale="0.5"
+                scale="0.01"
                 xChannelSelector="R"
                 yChannelSelector="G"
                 result="displaced"
@@ -165,7 +229,14 @@ export default function SplashScreen() {
 
       <motion.footer
         variants={itemVariants}
-        style={{ zIndex: 1, width: "100%" }}
+        style={{
+          zIndex: 1,
+          width: "100%",
+          display: "flex",
+          flexDirection: "column",
+          gap: "16px",
+          alignItems: "flex-start",
+        }}
       >
         <button
           onClick={() => navigate("/upload")}
@@ -200,7 +271,145 @@ export default function SplashScreen() {
             />
           </svg>
         </button>
+
+        <button
+          onClick={() => setShowInfo(true)}
+          style={{
+            fontSize: "12px",
+            color: "var(--color-blue)",
+            backgroundColor: "var(--color-bg)",
+            fontWeight: "700",
+            textDecoration: "underline",
+            border: "none",
+            cursor: "pointer",
+            padding: 0,
+          }}
+        >
+          o que é um zine?
+        </button>
       </motion.footer>
+
+      <AnimatePresence>
+        {showInfo && (
+          <motion.div
+            initial={{ opacity: 0, y: 50, x: "-50%" }}
+            animate={{ opacity: 1, y: 0, x: "-50%" }}
+            exit={{ opacity: 0, y: 50, x: "-50%" }}
+            style={{
+              position: "absolute",
+              bottom: "40px",
+              left: "50%",
+              width: "300px",
+              padding: "24px",
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+              alignItems: "center",
+              zIndex: 100,
+            }}
+          >
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                pointerEvents: "none",
+              }}
+            >
+              <WigglySvg
+                id="info-border"
+                viewBox="0 0 300 200"
+                baseFrequency="0.015 0.02"
+                scale="4"
+                dur="0.4s"
+                preserveAspectRatio="none"
+              >
+                <rect
+                  x="4"
+                  y="4"
+                  width="292"
+                  height="192"
+                  fill="var(--color-bg)"
+                  stroke="var(--color-blue)"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </WigglySvg>
+            </div>
+
+            <button
+              onClick={() => setShowInfo(false)}
+              style={{
+                position: "absolute",
+                top: "12px",
+                right: "12px",
+                width: "24px",
+                height: "24px",
+                background: "transparent",
+                border: "none",
+                cursor: "pointer",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                zIndex: 2,
+              }}
+            >
+              <WigglySvg
+                id="close-info"
+                viewBox="0 0 24 24"
+                baseFrequency="0.02 0.03"
+                scale="5"
+                dur="0.3s"
+              >
+                <path
+                  d="M18 6L6 18M6 6l12 12"
+                  stroke="var(--color-blue)"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  fill="none"
+                />
+              </WigglySvg>
+            </button>
+
+            <p
+              style={{
+                color: "var(--color-blue)",
+                fontWeight: 600,
+                fontSize: "12px",
+                lineHeight: "1.6",
+                textAlign: "left",
+                zIndex: 1,
+                margin: 0,
+              }}
+            >
+              Um zine (ou fanzine) é uma publicação independente, geralmente
+              artesanal e de pequena tiragem, criada por autores para expressar
+              ideias de forma livre, barata e sem as restrições da grande mídia.
+              <br />
+              <br />
+              Este site foi criado exclusivamente para a montagem e organização
+              das páginas do seu zine, funcionando como uma ferramenta de
+              composição visual.
+              <br />
+              <br />
+              <p
+                style={{
+                  color: "var(--color-blue)",
+                  fontWeight: 900,
+                  fontSize: "12px",
+                  lineHeight: "1.6",
+                  textAlign: "left",
+                  zIndex: 1,
+                  margin: 0,
+                }}
+              >
+                com amor, pp
+              </p>
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }
