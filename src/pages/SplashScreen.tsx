@@ -234,7 +234,7 @@ export default function SplashScreen() {
           width: "100%",
           display: "flex",
           flexDirection: "column",
-          gap: "16px",
+          gap: "12px",
           alignItems: "flex-start",
         }}
       >
@@ -383,17 +383,19 @@ export default function SplashScreen() {
                 margin: 0,
               }}
             >
-              Um zine (ou fanzine) é uma publicação independente, geralmente
-              artesanal e de pequena tiragem, criada por autores para expressar
-              ideias de forma livre, barata e sem as restrições da grande mídia.
+              Um zine (ou fanzine) é uma publicação independente, criativa e
+              cheia de personalidade, feita para compartilhar ideias de forma
+              livre
               <br />
               <br />
-              Este site foi criado exclusivamente para a montagem e organização
-              das páginas do seu zine, funcionando como uma ferramenta de
-              composição visual.
+              Este site foi criado para te ajudar a montar e organizar as
+              páginas do seu zine de forma simples e divertida.
               <br />
               <br />
-              <p
+              <button
+                onClick={() =>
+                  window.open("https://cornucopeiac.vercel.app/home", "_blank")
+                }
                 style={{
                   color: "var(--color-blue)",
                   fontWeight: 900,
@@ -404,8 +406,8 @@ export default function SplashScreen() {
                   margin: 0,
                 }}
               >
-                com amor, pp
-              </p>
+                pepe
+              </button>
             </p>
           </motion.div>
         )}
