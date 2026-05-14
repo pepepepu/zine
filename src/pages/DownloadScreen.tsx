@@ -199,7 +199,25 @@ export default function DownloadScreen() {
     const logoData = createLogoData();
     doc.addImage(logoData, "PNG", pageWidth / 2 - 5, pageHeight - 15, 10, 10);
 
-    doc.save("zine-rabiscado.pdf");
+    // SOLUÇÃO PARA O ANDROID
+    // Gera o PDF como um Blob
+    const pdfBlob = doc.output("blob");
+    // Cria uma URL temporária para o Blob
+    const blobUrl = URL.createObjectURL(pdfBlob);
+
+    // Cria um link <a> invisível no DOM
+    const link = document.createElement("a");
+    link.href = blobUrl;
+    link.download = "zine-rabiscado.pdf";
+    document.body.appendChild(link);
+
+    // Força o clique no link
+    link.click();
+
+    // Limpa o DOM e libera a memória da URL
+    document.body.removeChild(link);
+    URL.revokeObjectURL(blobUrl);
+
     setIsDownloading(false);
   };
 
