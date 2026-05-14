@@ -71,20 +71,44 @@ export default function UploadScreen() {
   const navigate = useNavigate();
 
   const [images, setImages] = useState<(string | null)[]>(Array(8).fill(null));
-  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
   const fileInputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   const handleUpload = (index: number, e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 1048576) {
-        alert("A imagem deve ter no máximo 1MB.");
-        return;
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const newImages = [...images];
+    let currentSlotIndex = index;
+    let hasSizeError = false;
+
+    for (let i = 0; i < files.length; i++) {
+      while (currentSlotIndex < 8 && newImages[currentSlotIndex] !== null) {
+        currentSlotIndex++;
       }
+
+      if (currentSlotIndex >= 8) break;
+
+      const file = files[i];
+      if (file.size > 1048576) {
+        hasSizeError = true;
+        continue;
+      }
+
       const url = URL.createObjectURL(file);
-      const newImages = [...images];
-      newImages[index] = url;
-      setImages(newImages);
+      newImages[currentSlotIndex] = url;
+      currentSlotIndex++;
+    }
+
+    setImages(newImages);
+
+    if (hasSizeError) {
+      setToastMessage("A imagem deve ter no máximo 1MB.");
+      setTimeout(() => setToastMessage(""), 3000);
+    }
+
+    if (fileInputRefs.current[index]) {
+      fileInputRefs.current[index]!.value = "";
     }
   };
 
@@ -106,8 +130,8 @@ export default function UploadScreen() {
     if (hasAtLeastOneImage) {
       navigate("/download", { state: { images } });
     } else {
-      setShowToast(true);
-      setTimeout(() => setShowToast(false), 3000);
+      setToastMessage("Envie pelo menos 1 foto");
+      setTimeout(() => setToastMessage(""), 3000);
     }
   };
 
@@ -306,6 +330,7 @@ export default function UploadScreen() {
 
               <input
                 type="file"
+                multiple
                 accept="image/*"
                 ref={(el) => {
                   fileInputRefs.current[i] = el;
@@ -358,7 +383,7 @@ export default function UploadScreen() {
       </div>
 
       <AnimatePresence>
-        {showToast && (
+        {toastMessage && (
           <motion.div
             initial={{ opacity: 0, y: -50, x: "-50%" }}
             animate={{ opacity: 1, y: 0, x: "-50%" }}
@@ -407,12 +432,14 @@ export default function UploadScreen() {
               style={{
                 color: "var(--color-blue)",
                 fontWeight: 800,
-                fontSize: "14px",
+                fontSize: "12px",
                 textAlign: "center",
                 zIndex: 1,
+                padding: "0 10px",
+                textTransform: "uppercase",
               }}
             >
-              Envie pelo menos 1 foto
+              {toastMessage}
             </span>
           </motion.div>
         )}

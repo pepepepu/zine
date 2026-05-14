@@ -5,6 +5,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import jsPDF from "jspdf";
 import { path1, path2 } from "../svgData/zine-icon";
 import { path1PP, path2PP, path3PP } from "../svgData/p-icon";
+import { lineZine } from "../svgData/zine-script";
 
 const PROJECT_BLUE = "#0038a8";
 
@@ -298,7 +299,7 @@ export default function DownloadScreen() {
             </WigglySvg>
           </div>
 
-          {isDownloading && (
+          {isDownloading ? (
             <div
               style={{
                 position: "absolute",
@@ -327,6 +328,27 @@ export default function DownloadScreen() {
                 />
               </WigglySvg>
             </div>
+          ) : (
+            <div
+              style={{
+                width: "100px",
+                height: "100px",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <WigglySvg
+                id="zine-p-dl"
+                viewBox="0 0 439 251"
+                scale="11"
+                baseFrequency="0.05 0.06"
+              >
+                <g>
+                  <path d={lineZine} fill={PROJECT_BLUE} />
+                </g>
+              </WigglySvg>
+            </div>
           )}
         </div>
 
@@ -344,7 +366,6 @@ export default function DownloadScreen() {
             padding: 0,
             marginTop: "40px",
             opacity: isDownloading ? 0.5 : 1,
-            fontFamily: '"Martian Mono", monospace',
           }}
         >
           {isDownloading ? "rabiscando..." : "baixar meu zine"}
@@ -356,15 +377,15 @@ export default function DownloadScreen() {
           style={{
             background: "none",
             border: "none",
-            color: "var(--color-blue)",
+            color: "var(--color-bg)",
+            backgroundColor: "var(--color-blue)",
             fontSize: "0.8rem",
             fontWeight: "600",
             textDecoration: "underline",
             cursor: "pointer",
             padding: 0,
-            marginTop: "16px",
+            marginTop: "10px",
             opacity: isDownloading ? 0.5 : 1,
-            fontFamily: '"Martian Mono", monospace',
           }}
         >
           gerar um novo zine
