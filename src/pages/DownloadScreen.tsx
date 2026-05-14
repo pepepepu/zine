@@ -394,6 +394,7 @@ export default function DownloadScreen() {
 
       <div
         style={{
+          marginTop: "30px",
           width: "30px",
           height: "30px",
           display: "flex",
