@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { path1Z, path2Z } from "../svgData/zine-z";
+import { path1Z } from "../svgData/zine-z";
 
 export default function SplashScreen() {
   const navigate = useNavigate();
@@ -22,35 +22,20 @@ export default function SplashScreen() {
     initial: { opacity: 0 },
     animate: {
       opacity: 1,
-      transition: { staggerChildren: 0.4, delayChildren: 0.2 },
+      transition: { staggerChildren: 0.3, delayChildren: 0.2 },
     },
     exit: { opacity: 0 },
   };
 
-  // Alterado para any para aceitar a interpolação CSS nativa steps()
-  const itemVariants: any = {
-    initial: { opacity: 0, x: -20 },
+  const itemVariants = {
+    initial: { opacity: 0 },
     animate: {
       opacity: 1,
-      x: 0,
       transition: {
-        duration: 0.6,
-        ease: "steps(5, end)",
+        duration: 0.5,
+        ease: "linear",
       },
-    },
-  };
-
-  // Alterado para any para aceitar a interpolação CSS nativa steps()
-  const writeVariants: any = {
-    initial: { pathLength: 0 },
-    animate: {
-      pathLength: 1,
-      transition: {
-        duration: 2.5,
-        ease: "steps(25, end)",
-        delay: 0.8,
-      },
-    },
+    } as const,
   };
 
   return (
@@ -124,7 +109,7 @@ export default function SplashScreen() {
               <feDisplacementMap
                 in="SourceGraphic"
                 in2="noise"
-                scale="3"
+                scale="0.5"
                 xChannelSelector="R"
                 yChannelSelector="G"
                 result="displaced"
@@ -168,25 +153,11 @@ export default function SplashScreen() {
                 yChannelSelector="G"
               />
             </filter>
-
-            <mask id="logoMask" maskUnits="userSpaceOnUse">
-              <g id="originalLogoShapes" fill="white">
-                <path fillRule="evenodd" clipRule="evenodd" d={path1Z} />
-              </g>
-            </mask>
           </defs>
 
           <g filter="url(#wiggle-z)">
-            <g mask="url(#logoMask)" filter="url(#pen-grain)">
-              <motion.path
-                d={path2Z}
-                variants={writeVariants}
-                fill="none"
-                stroke="var(--color-blue)"
-                strokeWidth="20"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
+            <g filter="url(#pen-grain)">
+              <path d={path1Z} fill="var(--color-blue)" />
             </g>
           </g>
         </svg>
