@@ -22,35 +22,17 @@ A essência do projeto está na celebração da imperfeição. Em um cenário di
 
 Aqui está um vislumbre da experiência visual do aplicativo, construída com tipografia monoespaçada `Martian Mono` e paleta com forte contraste azul-monocromático.
 
-<p align="center">
-  <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop" width="30%" alt="Tela de Upload" />
-  <img src="https://images.unsplash.com/photo-1618005198143-e5283b019a8f?q=80&w=600&auto=format&fit=crop" width="30%" alt="Aviso de Validação" />
-  <img src="https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?q=80&w=600&auto=format&fit=crop" width="30%" alt="Tela de Download" />
-</p>
+### 💻 Splashscreen
 
-### 💻 Slot 1: Tela de Upload & Grade de Imagens
+<img src="/src/assets/readme-images/1-splash.jpeg" width="30%" alt="SplashScreen (tela de introdução)" />
 
-_[Substitua o link abaixo pelo print da sua tela de upload de imagens]_
+### 🔔 Tela de Upload
 
-```
-[Link ou Tag da Imagem da Tela de Upload]
-```
+<img src="/src/assets/readme-images/2-upload.jpeg" width="30%" alt="Tela de Upload" />
 
-### 🔔 Slot 2: Toast de Validação com Wiggly Effect
+### ⚡ Tela de Download
 
-_[Substitua o link abaixo pelo print do comportamento do Toast centralizado ao tentar avançar vazio]_
-
-```
-[Link ou Tag da Imagem da Tela de Erro/Toast]
-```
-
-### ⚡ Slot 3: Tela de Download & Prévia Pronta
-
-_[Substitua o link abaixo pelo print da tela final contendo as opções de download e reset]_
-
-```
-[Link ou Tag da Imagem da Tela de Download]
-```
+<img src="/src/assets/readme-images/3-download.jpeg" width="30%" alt="Tela de Download" />
 
 ---
 

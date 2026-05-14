@@ -45,7 +45,6 @@ export default function SplashScreen() {
       pathLength: 1,
       transition: {
         duration: 2.5,
-        ease: (t: number) => Math.floor(t * 25) / 25,
         delay: 0.8,
       },
     },
