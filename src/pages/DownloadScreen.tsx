@@ -166,7 +166,7 @@ export default function DownloadScreen() {
             rowH,
           );
         } catch (e) {
-          console.error(`Erro ao carregar imagem no índice ${item.idx}`, e);
+          console.error(e);
         }
       }
     }
@@ -199,24 +199,41 @@ export default function DownloadScreen() {
     const logoData = createLogoData();
     doc.addImage(logoData, "PNG", pageWidth / 2 - 5, pageHeight - 15, 10, 10);
 
-    // SOLUÇÃO PARA O ANDROID
-    // Gera o PDF como um Blob
     const pdfBlob = doc.output("blob");
-    // Cria uma URL temporária para o Blob
-    const blobUrl = URL.createObjectURL(pdfBlob);
+    const file = new File([pdfBlob], "zine-rabiscado.pdf", {
+      type: "application/pdf",
+    });
 
-    // Cria um link <a> invisível no DOM
-    const link = document.createElement("a");
-    link.href = blobUrl;
-    link.download = "zine-rabiscado.pdf";
-    document.body.appendChild(link);
-
-    // Força o clique no link
-    link.click();
-
-    // Limpa o DOM e libera a memória da URL
-    document.body.removeChild(link);
-    URL.revokeObjectURL(blobUrl);
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({
+          files: [file],
+          title: "Meu Zine",
+        });
+      } catch (error) {
+        const blobUrl = URL.createObjectURL(pdfBlob);
+        const link = document.createElement("a");
+        link.href = blobUrl;
+        link.download = "zine-rabiscado.pdf";
+        document.body.appendChild(link);
+        link.click();
+        setTimeout(() => {
+          document.body.removeChild(link);
+          URL.revokeObjectURL(blobUrl);
+        }, 1500);
+      }
+    } else {
+      const blobUrl = URL.createObjectURL(pdfBlob);
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = "zine-rabiscado.pdf";
+      document.body.appendChild(link);
+      link.click();
+      setTimeout(() => {
+        document.body.removeChild(link);
+        URL.revokeObjectURL(blobUrl);
+      }, 1500);
+    }
 
     setIsDownloading(false);
   };
