@@ -384,8 +384,8 @@ export default function SplashScreen() {
               }}
             >
               Um zine (ou fanzine) é uma publicação independente, criativa e
-              cheia de personalidade, feita para compartilhar ideias de forma
-              livre
+              cheia de personalidade. Pense como uma mini revista dobrável feita
+              do seu jeito, com imagens, colagens e criatividade.
               <br />
               <br />
               Este site foi criado para te ajudar a montar e organizar as
