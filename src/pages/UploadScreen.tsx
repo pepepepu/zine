@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useRef, type ChangeEvent } from "react";
+import { useState, useRef, useEffect, type ChangeEvent } from "react";
 import type { ReactNode } from "react";
 import { path1, path2 } from "../svgData/zine-icon";
 import { path1PP, path2PP, path3PP } from "../svgData/p-icon";
@@ -74,6 +74,23 @@ export default function UploadScreen() {
   const [toastMessage, setToastMessage] = useState("");
   const fileInputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
+  // Estados do Editor de Imagem (Modal)
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [imgObj, setImgObj] = useState<HTMLImageElement | null>(null);
+  const [zoom, setZoom] = useState(1);
+  const [rotation, setRotation] = useState(0);
+  const [flipH, setFlipH] = useState(false);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const dragRef = useRef({
+    isDragging: false,
+    startX: 0,
+    startY: 0,
+    initPanX: 0,
+    initPanY: 0,
+  });
+
   const handleUpload = (index: number, e: ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -90,7 +107,8 @@ export default function UploadScreen() {
       if (currentSlotIndex >= 8) break;
 
       const file = files[i];
-      if (file.size > 1048576) {
+      // Aumentado o limite de upload para 5MB
+      if (file.size > 5242880) {
         hasSizeError = true;
         continue;
       }
@@ -103,7 +121,7 @@ export default function UploadScreen() {
     setImages(newImages);
 
     if (hasSizeError) {
-      setToastMessage("A imagem deve ter no máximo 1MB.");
+      setToastMessage("A imagem deve ter no máximo 5MB.");
       setTimeout(() => setToastMessage(""), 3000);
     }
 
@@ -133,6 +151,126 @@ export default function UploadScreen() {
       setToastMessage("Envie pelo menos 1 foto");
       setTimeout(() => setToastMessage(""), 3000);
     }
+  };
+
+  // Lógica do Modal de Edição
+  useEffect(() => {
+    if (editingIndex === null || !images[editingIndex]) {
+      setImgObj(null);
+      return;
+    }
+    const img = new Image();
+    img.crossOrigin = "Anonymous";
+    img.src = images[editingIndex]!;
+    img.onload = () => {
+      setImgObj(img);
+      setZoom(1);
+      setRotation(0);
+      setFlipH(false);
+      setPan({ x: 0, y: 0 });
+    };
+  }, [editingIndex, images]);
+
+  useEffect(() => {
+    if (!imgObj || !canvasRef.current) return;
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const targetW = 200;
+    const targetH = 300;
+    canvas.width = targetW;
+    canvas.height = targetH;
+
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(0, 0, targetW, targetH);
+
+    ctx.translate(targetW / 2 + pan.x, targetH / 2 + pan.y);
+    ctx.rotate((rotation * Math.PI) / 180);
+    if (flipH) ctx.scale(-1, 1);
+
+    const isRotated = rotation % 180 !== 0;
+    const w = isRotated ? imgObj.height : imgObj.width;
+    const h = isRotated ? imgObj.width : imgObj.height;
+
+    const scaleCover = Math.max(targetW / w, targetH / h) * zoom;
+    const drawW = imgObj.width * scaleCover;
+    const drawH = imgObj.height * scaleCover;
+
+    ctx.drawImage(imgObj, -drawW / 2, -drawH / 2, drawW, drawH);
+  }, [imgObj, zoom, rotation, flipH, pan]);
+
+  const handlePointerDown = (e: React.PointerEvent) => {
+    dragRef.current = {
+      isDragging: true,
+      startX: e.clientX,
+      startY: e.clientY,
+      initPanX: pan.x,
+      initPanY: pan.y,
+    };
+  };
+
+  const handlePointerMove = (e: React.PointerEvent) => {
+    if (!dragRef.current.isDragging) return;
+    const dx = e.clientX - dragRef.current.startX;
+    const dy = e.clientY - dragRef.current.startY;
+    setPan({
+      x: dragRef.current.initPanX + dx,
+      y: dragRef.current.initPanY + dy,
+    });
+  };
+
+  const handlePointerUp = () => {
+    dragRef.current.isDragging = false;
+  };
+
+  const handleSaveEdit = () => {
+    if (!imgObj || editingIndex === null) return;
+    const targetW = 800;
+    const targetH = 1200;
+    const scaleMultiplier = targetW / 200;
+
+    const canvas = document.createElement("canvas");
+    canvas.width = targetW;
+    canvas.height = targetH;
+    const ctx = canvas.getContext("2d")!;
+
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(0, 0, targetW, targetH);
+
+    ctx.translate(
+      targetW / 2 + pan.x * scaleMultiplier,
+      targetH / 2 + pan.y * scaleMultiplier,
+    );
+    ctx.rotate((rotation * Math.PI) / 180);
+    if (flipH) ctx.scale(-1, 1);
+
+    const isRotated = rotation % 180 !== 0;
+    const w = isRotated ? imgObj.height : imgObj.width;
+    const h = isRotated ? imgObj.width : imgObj.height;
+
+    const scaleCover = Math.max(targetW / w, targetH / h) * zoom;
+    const drawW = imgObj.width * scaleCover;
+    const drawH = imgObj.height * scaleCover;
+
+    ctx.drawImage(imgObj, -drawW / 2, -drawH / 2, drawW, drawH);
+
+    const newUrl = canvas.toDataURL("image/jpeg", 0.9);
+    const newImages = [...images];
+    newImages[editingIndex] = newUrl;
+    setImages(newImages);
+    setEditingIndex(null);
+  };
+
+  const btnStyle = {
+    background: "none",
+    border: "1px solid var(--color-blue)",
+    color: "var(--color-blue)",
+    padding: "8px 12px",
+    fontSize: "12px",
+    fontWeight: 700,
+    cursor: "pointer",
+    textTransform: "uppercase" as const,
   };
 
   return (
@@ -288,43 +426,86 @@ export default function UploadScreen() {
                       objectFit: "cover",
                     }}
                   />
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleRemove(i);
-                    }}
+                  <div
                     style={{
                       position: "absolute",
                       top: "4px",
                       right: "4px",
-                      width: "24px",
-                      height: "24px",
-                      background: "var(--color-bg)",
-                      border: "none",
-                      padding: "2px",
-                      cursor: "pointer",
                       display: "flex",
-                      justifyContent: "center",
-                      alignItems: "center",
+                      flexDirection: "column",
+                      gap: "4px",
                     }}
                   >
-                    <WigglySvg
-                      id={`close-${i}`}
-                      viewBox="0 0 24 24"
-                      baseFrequency="0.02 0.03"
-                      scale="5"
-                      dur="0.3s"
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRemove(i);
+                      }}
+                      style={{
+                        width: "24px",
+                        height: "24px",
+                        background: "var(--color-bg)",
+                        border: "none",
+                        padding: "2px",
+                        cursor: "pointer",
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                      }}
                     >
-                      <path
-                        d="M18 6L6 18M6 6l12 12"
-                        stroke="var(--color-blue)"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        fill="none"
-                      />
-                    </WigglySvg>
-                  </button>
+                      <WigglySvg
+                        id={`close-${i}`}
+                        viewBox="0 0 24 24"
+                        baseFrequency="0.02 0.03"
+                        scale="5"
+                        dur="0.3s"
+                      >
+                        <path
+                          d="M18 6L6 18M6 6l12 12"
+                          stroke="var(--color-blue)"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          fill="none"
+                        />
+                      </WigglySvg>
+                    </button>
+
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditingIndex(i);
+                      }}
+                      style={{
+                        width: "24px",
+                        height: "24px",
+                        background: "var(--color-bg)",
+                        border: "none",
+                        padding: "4px",
+                        cursor: "pointer",
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                      }}
+                    >
+                      <WigglySvg
+                        id={`edit-${i}`}
+                        viewBox="0 0 24 24"
+                        baseFrequency="0.02 0.03"
+                        scale="5"
+                        dur="0.3s"
+                      >
+                        <path
+                          d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"
+                          stroke="var(--color-blue)"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          fill="none"
+                        />
+                      </WigglySvg>
+                    </button>
+                  </div>
                 </>
               )}
 
@@ -401,11 +582,7 @@ export default function UploadScreen() {
             }}
           >
             <div
-              style={{
-                position: "absolute",
-                inset: 0,
-                pointerEvents: "none",
-              }}
+              style={{ position: "absolute", inset: 0, pointerEvents: "none" }}
             >
               <WigglySvg
                 id="toast-border"
@@ -441,6 +618,190 @@ export default function UploadScreen() {
             >
               {toastMessage}
             </span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {editingIndex !== null && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: "100%",
+              backgroundColor: "rgba(0, 0, 0, 0.7)",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              zIndex: 200,
+            }}
+          >
+            <div
+              style={{
+                position: "relative",
+                width: "300px",
+                padding: "30px",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: "20px",
+              }}
+            >
+              <div
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  pointerEvents: "none",
+                }}
+              >
+                <WigglySvg
+                  id="modal-border"
+                  viewBox="0 0 300 500"
+                  baseFrequency="0.015 0.02"
+                  scale="4"
+                  dur="0.4s"
+                  preserveAspectRatio="none"
+                >
+                  <rect
+                    x="4"
+                    y="4"
+                    width="292"
+                    height="492"
+                    fill="var(--color-bg)"
+                    stroke="var(--color-blue)"
+                    strokeWidth="3"
+                  />
+                </WigglySvg>
+              </div>
+
+              <div
+                style={{
+                  zIndex: 1,
+                  width: "100%",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: "16px",
+                }}
+              >
+                <p
+                  style={{
+                    margin: 0,
+                    color: "var(--color-blue)",
+                    fontWeight: 800,
+                    fontSize: "14px",
+                  }}
+                >
+                  CORTAR E AJUSTAR
+                </p>
+
+                <canvas
+                  ref={canvasRef}
+                  onPointerDown={handlePointerDown}
+                  onPointerMove={handlePointerMove}
+                  onPointerUp={handlePointerUp}
+                  onPointerLeave={handlePointerUp}
+                  style={{
+                    width: "200px",
+                    height: "300px",
+                    border: "1px solid var(--color-blue)",
+                    cursor: "grab",
+                    touchAction: "none",
+                  }}
+                />
+                <p
+                  style={{
+                    margin: 0,
+                    color: "var(--color-blue)",
+                    fontSize: "10px",
+                    fontWeight: 600,
+                  }}
+                >
+                  Arraste para reposicionar
+                </p>
+
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    width: "100%",
+                  }}
+                >
+                  <button
+                    onClick={() => setRotation((r) => r + 90)}
+                    style={btnStyle}
+                  >
+                    ⟳ Girar
+                  </button>
+                  <button onClick={() => setFlipH((f) => !f)} style={btnStyle}>
+                    ↔ Espelhar
+                  </button>
+                </div>
+
+                <div
+                  style={{
+                    width: "100%",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "8px",
+                  }}
+                >
+                  <label
+                    style={{
+                      color: "var(--color-blue)",
+                      fontSize: "12px",
+                      fontWeight: 700,
+                    }}
+                  >
+                    Zoom
+                  </label>
+                  <input
+                    type="range"
+                    min="1"
+                    max="3"
+                    step="0.1"
+                    value={zoom}
+                    onChange={(e) => setZoom(parseFloat(e.target.value))}
+                    style={{ width: "100%" }}
+                  />
+                </div>
+
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    width: "100%",
+                    marginTop: "10px",
+                  }}
+                >
+                  <button
+                    onClick={() => setEditingIndex(null)}
+                    style={{
+                      ...btnStyle,
+                      border: "none",
+                      textDecoration: "underline",
+                    }}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={handleSaveEdit}
+                    style={{
+                      ...btnStyle,
+                      background: "var(--color-blue)",
+                      color: "var(--color-bg)",
+                    }}
+                  >
+                    Salvar
+                  </button>
+                </div>
+              </div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
