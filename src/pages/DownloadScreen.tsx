@@ -118,6 +118,16 @@ export default function DownloadScreen() {
   const images = location.state?.images || Array(8).fill(null);
 
   const generateZine = async () => {
+    const ua = navigator.userAgent || navigator.vendor || (window as any).opera;
+    const isInAppBrowser = /Instagram|FBAN|FBAV/i.test(ua);
+
+    if (isInAppBrowser) {
+      alert(
+        "O navegador do Instagram bloqueia downloads diretos.\n\nPara baixar seu zine, clique nos 3 pontinhos no canto superior da tela e escolha 'Abrir no navegador' (Chrome/Safari).",
+      );
+      return;
+    }
+
     setIsDownloading(true);
 
     await new Promise((resolve) => setTimeout(resolve, 3000));
