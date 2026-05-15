@@ -178,27 +178,26 @@ export default function DownloadScreen() {
 
     const pageWidth = 297;
     const pageHeight = 210;
+    const targetRatio = 1 / 1.5;
 
-    const marginX = 15;
     const marginTop = 25;
     const marginBottom = 20;
+    const maxGridH = pageHeight - marginTop - marginBottom;
 
-    const availableWidth = pageWidth - marginX * 2;
-    const availableHeight = pageHeight - marginTop - marginBottom;
-
-    const colW = availableWidth / 4;
-    const rowH = availableHeight / 2;
-    const targetRatio = colW / rowH;
+    const rowH = maxGridH / 2;
+    const colW = rowH * targetRatio;
+    const gridW = colW * 4;
+    const marginX = (pageWidth - gridW) / 2;
 
     const gridMap = [
       { idx: 0, col: 0, row: 0, rot: true },
-      { idx: 5, col: 1, row: 0, rot: true },
-      { idx: 6, col: 2, row: 0, rot: true },
-      { idx: 7, col: 3, row: 0, rot: true },
-      { idx: 1, col: 0, row: 1, rot: false },
-      { idx: 2, col: 1, row: 1, rot: false },
-      { idx: 3, col: 2, row: 1, rot: false },
-      { idx: 4, col: 3, row: 1, rot: false },
+      { idx: 1, col: 1, row: 0, rot: true },
+      { idx: 2, col: 2, row: 0, rot: true },
+      { idx: 3, col: 3, row: 0, rot: true },
+      { idx: 4, col: 0, row: 1, rot: false },
+      { idx: 5, col: 1, row: 1, rot: false },
+      { idx: 6, col: 2, row: 1, rot: false },
+      { idx: 7, col: 3, row: 1, rot: false },
     ];
 
     for (const item of gridMap) {
@@ -220,9 +219,32 @@ export default function DownloadScreen() {
       }
     }
 
-    doc.setLineDashPattern([2, 2], 0);
     doc.setDrawColor(0, 56, 168);
-    doc.setLineWidth(0.3);
+    doc.setLineWidth(0.1);
+
+    doc.setLineDashPattern([1, 1], 0);
+    doc.rect(marginX, marginTop, gridW, maxGridH);
+
+    doc.setLineDashPattern([0.5, 1.5], 0);
+    for (let i = 1; i < 4; i++) {
+      doc.line(
+        marginX + i * colW,
+        marginTop,
+        marginX + i * colW,
+        marginTop + maxGridH,
+      );
+    }
+
+    doc.line(marginX, marginTop + rowH, marginX + colW, marginTop + rowH);
+    doc.line(
+      marginX + colW * 3,
+      marginTop + rowH,
+      marginX + gridW,
+      marginTop + rowH,
+    );
+
+    doc.setLineWidth(0.4);
+    doc.setLineDashPattern([3, 1], 0);
     doc.line(
       marginX + colW,
       marginTop + rowH,
@@ -231,19 +253,19 @@ export default function DownloadScreen() {
     );
 
     doc.setFontSize(14);
-    doc.text("✂", marginX + availableWidth / 2, marginTop + rowH + 1.5, {
+    doc.text("✂", pageWidth / 2, marginTop + rowH + 1.5, {
       align: "center",
     });
 
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(8);
+    doc.setFontSize(7);
     doc.setTextColor(0, 56, 168);
-    doc.text(
-      "COMO MONTAR: 1. DOBRE AO MEIO (HORIZONTAL E VERTICAL)  |  2. CORTE NA LINHA PONTILHADA CENTRAL  |  3. DOBRE PARA FORMAR O LIVRETO",
-      pageWidth / 2,
-      15,
-      { align: "center" },
-    );
+
+    const tutorial = [
+      "PASSO A PASSO: 1. RECORTE AS MARGENS DA FOLHA  |  2. DOBRE AO MEIO (SENTIDO HORIZONTAL)  |  3. DOBRE AS COLUNAS (SANFONADO)",
+      "4. CORTE O PONTILHADO CENTRAL ✂  |  5. DOBRE NO MEIO NOVAMENTE",
+    ];
+    doc.text(tutorial, pageWidth / 2, 12, { align: "center" });
 
     const logoData = createLogoData();
     doc.addImage(logoData, "PNG", pageWidth / 2 - 5, pageHeight - 15, 10, 10);
@@ -264,7 +286,6 @@ export default function DownloadScreen() {
       }, 1500);
     } else {
       const newWin = window.open(blobUrl, "_blank");
-
       if (!newWin) {
         const link = document.createElement("a");
         link.href = blobUrl;

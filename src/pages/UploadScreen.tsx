@@ -17,14 +17,14 @@ interface WigglySvgProps {
 }
 
 const PAGE_LABELS = [
-  "Capa-1",
-  "Capa-2",
-  "Pág 7",
+  "Capa",
+  "Contra-capa",
   "Pág 6",
+  "Pág 5",
+  "Pág 1",
   "Pág 2",
   "Pág 3",
   "Pág 4",
-  "Pág 5",
 ];
 
 const WigglySvg = ({
