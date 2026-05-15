@@ -16,6 +16,17 @@ interface WigglySvgProps {
   style?: React.CSSProperties;
 }
 
+const PAGE_LABELS = [
+  "Capa-1",
+  "Capa-2",
+  "Pág 7",
+  "Pág 6",
+  "Pág 2",
+  "Pág 3",
+  "Pág 4",
+  "Pág 5",
+];
+
 const WigglySvg = ({
   children,
   id,
@@ -305,6 +316,26 @@ export default function UploadScreen() {
                 cursor: img ? "default" : "pointer",
               }}
             >
+              <div
+                style={{
+                  position: "absolute",
+                  bottom: "4px",
+                  left: "4px",
+                  backgroundColor: "var(--color-bg)",
+                  border: "1px solid var(--color-blue)",
+                  color: "var(--color-blue)",
+                  padding: "2px 4px",
+                  fontSize: "8px",
+                  fontWeight: 800,
+                  textTransform: "uppercase",
+                  pointerEvents: "none",
+                  zIndex: 2,
+                  filter: uiWiggleFilter,
+                }}
+              >
+                {PAGE_LABELS[i]}
+              </div>
+
               {!img && (
                 <>
                   <div
@@ -383,6 +414,7 @@ export default function UploadScreen() {
                       display: "flex",
                       flexDirection: "column",
                       gap: "4px",
+                      zIndex: 3,
                     }}
                   >
                     <button
@@ -397,6 +429,9 @@ export default function UploadScreen() {
                         border: "none",
                         padding: "2px",
                         cursor: "pointer",
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
                       }}
                     >
                       <WigglySvg
@@ -428,6 +463,9 @@ export default function UploadScreen() {
                         border: "none",
                         padding: "4px",
                         cursor: "pointer",
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
                       }}
                     >
                       <WigglySvg
@@ -450,7 +488,6 @@ export default function UploadScreen() {
                   </div>
                 </>
               )}
-
               <input
                 type="file"
                 multiple
@@ -464,7 +501,6 @@ export default function UploadScreen() {
             </div>
           ))}
         </div>
-
         <button
           onClick={() =>
             images.some((img) => img !== null)

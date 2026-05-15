@@ -249,18 +249,23 @@ export default function DownloadScreen() {
     doc.addImage(logoData, "PNG", pageWidth / 2 - 5, pageHeight - 15, 10, 10);
 
     const pdfBlob = doc.output("blob");
-    const file = new File([pdfBlob], "zine-rabiscado.pdf", {
-      type: "application/pdf",
-    });
+    const blobUrl = URL.createObjectURL(pdfBlob);
+    const isMobileDevice = /Mobi|Android|iPhone|iPad|iPod/i.test(ua);
 
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      try {
-        await navigator.share({
-          files: [file],
-          title: "Meu Zine",
-        });
-      } catch (error) {
-        const blobUrl = URL.createObjectURL(pdfBlob);
+    if (isMobileDevice) {
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = "zine-rabiscado.pdf";
+      document.body.appendChild(link);
+      link.click();
+      setTimeout(() => {
+        document.body.removeChild(link);
+        URL.revokeObjectURL(blobUrl);
+      }, 1500);
+    } else {
+      const newWin = window.open(blobUrl, "_blank");
+
+      if (!newWin) {
         const link = document.createElement("a");
         link.href = blobUrl;
         link.download = "zine-rabiscado.pdf";
@@ -271,17 +276,6 @@ export default function DownloadScreen() {
           URL.revokeObjectURL(blobUrl);
         }, 1500);
       }
-    } else {
-      const blobUrl = URL.createObjectURL(pdfBlob);
-      const link = document.createElement("a");
-      link.href = blobUrl;
-      link.download = "zine-rabiscado.pdf";
-      document.body.appendChild(link);
-      link.click();
-      setTimeout(() => {
-        document.body.removeChild(link);
-        URL.revokeObjectURL(blobUrl);
-      }, 1500);
     }
 
     setIsDownloading(false);
