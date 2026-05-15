@@ -6,13 +6,14 @@ import { path1PP, path2PP, path3PP } from "../svgData/p-icon";
 import { useNavigate } from "react-router-dom";
 
 interface WigglySvgProps {
-  children: ReactNode;
+  children?: ReactNode;
   id: string;
-  viewBox: string;
+  viewBox?: string;
   baseFrequency?: string;
   scale?: string;
   dur?: string;
   preserveAspectRatio?: string;
+  style?: React.CSSProperties;
 }
 
 const WigglySvg = ({
@@ -23,13 +24,18 @@ const WigglySvg = ({
   scale = "1.5",
   dur = "0.4s",
   preserveAspectRatio = "xMidYMid meet",
+  style,
 }: WigglySvgProps) => (
   <svg
-    width="100%"
-    height="100%"
+    width={viewBox ? "100%" : "0"}
+    height={viewBox ? "100%" : "0"}
     viewBox={viewBox}
     preserveAspectRatio={preserveAspectRatio}
-    style={{ overflow: "visible" }}
+    style={{
+      overflow: "visible",
+      position: viewBox ? "relative" : "absolute",
+      ...style,
+    }}
   >
     <defs>
       <filter
@@ -63,7 +69,7 @@ const WigglySvg = ({
         />
       </filter>
     </defs>
-    <g filter={`url(#wiggle-${id})`}>{children}</g>
+    {children && <g filter={`url(#wiggle-${id})`}>{children}</g>}
   </svg>
 );
 
@@ -74,7 +80,6 @@ export default function UploadScreen() {
   const [toastMessage, setToastMessage] = useState("");
   const fileInputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-  // Estados do Editor de Imagem (Modal)
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [imgObj, setImgObj] = useState<HTMLImageElement | null>(null);
   const [zoom, setZoom] = useState(1);
@@ -94,40 +99,28 @@ export default function UploadScreen() {
   const handleUpload = (index: number, e: ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
-
     const newImages = [...images];
     let currentSlotIndex = index;
     let hasSizeError = false;
-
     for (let i = 0; i < files.length; i++) {
-      while (currentSlotIndex < 8 && newImages[currentSlotIndex] !== null) {
+      while (currentSlotIndex < 8 && newImages[currentSlotIndex] !== null)
         currentSlotIndex++;
-      }
-
       if (currentSlotIndex >= 8) break;
-
       const file = files[i];
-      // Aumentado o limite de upload para 5MB
       if (file.size > 5242880) {
         hasSizeError = true;
         continue;
       }
-
       const url = URL.createObjectURL(file);
       newImages[currentSlotIndex] = url;
       currentSlotIndex++;
     }
-
     setImages(newImages);
-
     if (hasSizeError) {
       setToastMessage("A imagem deve ter no máximo 5MB.");
       setTimeout(() => setToastMessage(""), 3000);
     }
-
-    if (fileInputRefs.current[index]) {
-      fileInputRefs.current[index]!.value = "";
-    }
+    if (fileInputRefs.current[index]) fileInputRefs.current[index]!.value = "";
   };
 
   const handleRemove = (index: number) => {
@@ -136,24 +129,9 @@ export default function UploadScreen() {
       URL.revokeObjectURL(newImages[index] as string);
       newImages[index] = null;
       setImages(newImages);
-      if (fileInputRefs.current[index]) {
-        fileInputRefs.current[index]!.value = "";
-      }
     }
   };
 
-  const handleGenerateClick = () => {
-    const hasAtLeastOneImage = images.some((img) => img !== null);
-
-    if (hasAtLeastOneImage) {
-      navigate("/download", { state: { images } });
-    } else {
-      setToastMessage("Envie pelo menos 1 foto");
-      setTimeout(() => setToastMessage(""), 3000);
-    }
-  };
-
-  // Lógica do Modal de Edição
   useEffect(() => {
     if (editingIndex === null || !images[editingIndex]) {
       setImgObj(null);
@@ -176,91 +154,56 @@ export default function UploadScreen() {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-
     const targetW = 200;
     const targetH = 300;
     canvas.width = targetW;
     canvas.height = targetH;
-
     ctx.fillStyle = "#fff";
     ctx.fillRect(0, 0, targetW, targetH);
-
     ctx.translate(targetW / 2 + pan.x, targetH / 2 + pan.y);
     ctx.rotate((rotation * Math.PI) / 180);
     if (flipH) ctx.scale(-1, 1);
-
     const isRotated = rotation % 180 !== 0;
     const w = isRotated ? imgObj.height : imgObj.width;
     const h = isRotated ? imgObj.width : imgObj.height;
-
     const scaleCover = Math.max(targetW / w, targetH / h) * zoom;
     const drawW = imgObj.width * scaleCover;
     const drawH = imgObj.height * scaleCover;
-
     ctx.drawImage(imgObj, -drawW / 2, -drawH / 2, drawW, drawH);
   }, [imgObj, zoom, rotation, flipH, pan]);
-
-  const handlePointerDown = (e: React.PointerEvent) => {
-    dragRef.current = {
-      isDragging: true,
-      startX: e.clientX,
-      startY: e.clientY,
-      initPanX: pan.x,
-      initPanY: pan.y,
-    };
-  };
-
-  const handlePointerMove = (e: React.PointerEvent) => {
-    if (!dragRef.current.isDragging) return;
-    const dx = e.clientX - dragRef.current.startX;
-    const dy = e.clientY - dragRef.current.startY;
-    setPan({
-      x: dragRef.current.initPanX + dx,
-      y: dragRef.current.initPanY + dy,
-    });
-  };
-
-  const handlePointerUp = () => {
-    dragRef.current.isDragging = false;
-  };
 
   const handleSaveEdit = () => {
     if (!imgObj || editingIndex === null) return;
     const targetW = 800;
     const targetH = 1200;
     const scaleMultiplier = targetW / 200;
-
     const canvas = document.createElement("canvas");
     canvas.width = targetW;
     canvas.height = targetH;
     const ctx = canvas.getContext("2d")!;
-
     ctx.fillStyle = "#fff";
     ctx.fillRect(0, 0, targetW, targetH);
-
     ctx.translate(
       targetW / 2 + pan.x * scaleMultiplier,
       targetH / 2 + pan.y * scaleMultiplier,
     );
     ctx.rotate((rotation * Math.PI) / 180);
     if (flipH) ctx.scale(-1, 1);
-
     const isRotated = rotation % 180 !== 0;
     const w = isRotated ? imgObj.height : imgObj.width;
     const h = isRotated ? imgObj.width : imgObj.height;
-
     const scaleCover = Math.max(targetW / w, targetH / h) * zoom;
     const drawW = imgObj.width * scaleCover;
     const drawH = imgObj.height * scaleCover;
-
     ctx.drawImage(imgObj, -drawW / 2, -drawH / 2, drawW, drawH);
-
     const newUrl = canvas.toDataURL("image/jpeg", 0.9);
     const newImages = [...images];
     newImages[editingIndex] = newUrl;
     setImages(newImages);
     setEditingIndex(null);
   };
+
+  const uiWiggleFilter = "url(#wiggle-ui-controls)";
 
   const btnStyle = {
     background: "none",
@@ -271,6 +214,7 @@ export default function UploadScreen() {
     fontWeight: 700,
     cursor: "pointer",
     textTransform: "uppercase" as const,
+    filter: uiWiggleFilter,
   };
 
   return (
@@ -291,6 +235,13 @@ export default function UploadScreen() {
         position: "relative",
       }}
     >
+      <WigglySvg
+        id="ui-controls"
+        baseFrequency="0.04 0.06"
+        scale="2"
+        dur="0.5s"
+      />
+
       <div
         style={{
           width: "50px",
@@ -325,7 +276,6 @@ export default function UploadScreen() {
         <p
           style={{
             fontSize: "12px",
-            backgroundColor: "var(--color-bg)",
             color: "var(--color-blue)",
             fontWeight: 700,
           }}
@@ -336,7 +286,6 @@ export default function UploadScreen() {
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(4, 1fr)",
-            gridTemplateRows: "repeat(2, 1fr)",
             gap: "12px",
             width: "100%",
             maxWidth: "600px",
@@ -448,9 +397,6 @@ export default function UploadScreen() {
                         border: "none",
                         padding: "2px",
                         cursor: "pointer",
-                        display: "flex",
-                        justifyContent: "center",
-                        alignItems: "center",
                       }}
                     >
                       <WigglySvg
@@ -470,7 +416,6 @@ export default function UploadScreen() {
                         />
                       </WigglySvg>
                     </button>
-
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -483,9 +428,6 @@ export default function UploadScreen() {
                         border: "none",
                         padding: "4px",
                         cursor: "pointer",
-                        display: "flex",
-                        justifyContent: "center",
-                        alignItems: "center",
                       }}
                     >
                       <WigglySvg
@@ -524,7 +466,12 @@ export default function UploadScreen() {
         </div>
 
         <button
-          onClick={handleGenerateClick}
+          onClick={() =>
+            images.some((img) => img !== null)
+              ? navigate("/download", { state: { images } })
+              : (setToastMessage("Envie pelo menos 1 foto"),
+                setTimeout(() => setToastMessage(""), 3000))
+          }
           style={{
             background: "none",
             border: "none",
@@ -533,22 +480,13 @@ export default function UploadScreen() {
             fontWeight: "800",
             textDecoration: "underline",
             cursor: "pointer",
-            padding: 0,
           }}
         >
           gerar meu zine
         </button>
       </div>
 
-      <div
-        style={{
-          width: "30px",
-          height: "30px",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
+      <div style={{ width: "30px", height: "30px" }}>
         <WigglySvg
           id="zine-p"
           viewBox="0 0 24 28"
@@ -582,7 +520,11 @@ export default function UploadScreen() {
             }}
           >
             <div
-              style={{ position: "absolute", inset: 0, pointerEvents: "none" }}
+              style={{
+                position: "absolute",
+                inset: 0,
+                pointerEvents: "none",
+              }}
             >
               <WigglySvg
                 id="toast-border"
@@ -630,10 +572,7 @@ export default function UploadScreen() {
             exit={{ opacity: 0 }}
             style={{
               position: "fixed",
-              top: 0,
-              left: 0,
-              width: "100%",
-              height: "100%",
+              inset: 0,
               backgroundColor: "rgba(0, 0, 0, 0.7)",
               display: "flex",
               justifyContent: "center",
@@ -644,8 +583,8 @@ export default function UploadScreen() {
             <div
               style={{
                 position: "relative",
-                width: "300px",
-                padding: "30px",
+                width: "320px",
+                padding: "40px 30px",
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
@@ -661,7 +600,7 @@ export default function UploadScreen() {
               >
                 <WigglySvg
                   id="modal-border"
-                  viewBox="0 0 300 500"
+                  viewBox="0 0 320 520"
                   baseFrequency="0.015 0.02"
                   scale="4"
                   dur="0.4s"
@@ -670,8 +609,8 @@ export default function UploadScreen() {
                   <rect
                     x="4"
                     y="4"
-                    width="292"
-                    height="492"
+                    width="312"
+                    height="512"
                     fill="var(--color-bg)"
                     stroke="var(--color-blue)"
                     strokeWidth="3"
@@ -695,17 +634,36 @@ export default function UploadScreen() {
                     color: "var(--color-blue)",
                     fontWeight: 800,
                     fontSize: "14px",
+                    filter: uiWiggleFilter,
                   }}
                 >
-                  CORTAR E AJUSTAR
+                  AJUSTAR IMAGEM
                 </p>
 
                 <canvas
                   ref={canvasRef}
-                  onPointerDown={handlePointerDown}
-                  onPointerMove={handlePointerMove}
-                  onPointerUp={handlePointerUp}
-                  onPointerLeave={handlePointerUp}
+                  onPointerDown={(e) =>
+                    (dragRef.current = {
+                      isDragging: true,
+                      startX: e.clientX,
+                      startY: e.clientY,
+                      initPanX: pan.x,
+                      initPanY: pan.y,
+                    })
+                  }
+                  onPointerMove={(e) =>
+                    dragRef.current.isDragging &&
+                    setPan({
+                      x:
+                        dragRef.current.initPanX +
+                        (e.clientX - dragRef.current.startX),
+                      y:
+                        dragRef.current.initPanY +
+                        (e.clientY - dragRef.current.startY),
+                    })
+                  }
+                  onPointerUp={() => (dragRef.current.isDragging = false)}
+                  onPointerLeave={() => (dragRef.current.isDragging = false)}
                   style={{
                     width: "200px",
                     height: "300px",
@@ -714,16 +672,6 @@ export default function UploadScreen() {
                     touchAction: "none",
                   }}
                 />
-                <p
-                  style={{
-                    margin: 0,
-                    color: "var(--color-blue)",
-                    fontSize: "10px",
-                    fontWeight: 600,
-                  }}
-                >
-                  Arraste para reposicionar
-                </p>
 
                 <div
                   style={{
@@ -749,13 +697,15 @@ export default function UploadScreen() {
                     display: "flex",
                     flexDirection: "column",
                     gap: "8px",
+                    filter: uiWiggleFilter,
                   }}
                 >
                   <label
                     style={{
                       color: "var(--color-blue)",
-                      fontSize: "12px",
+                      fontSize: "11px",
                       fontWeight: 700,
+                      textTransform: "uppercase",
                     }}
                   >
                     Zoom
@@ -764,10 +714,14 @@ export default function UploadScreen() {
                     type="range"
                     min="1"
                     max="3"
-                    step="0.1"
+                    step="0.05"
                     value={zoom}
                     onChange={(e) => setZoom(parseFloat(e.target.value))}
-                    style={{ width: "100%" }}
+                    style={{
+                      width: "100%",
+                      cursor: "pointer",
+                      accentColor: "var(--color-blue)",
+                    }}
                   />
                 </div>
 
