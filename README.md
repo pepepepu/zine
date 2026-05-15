@@ -1,4 +1,8 @@
-# 📖 Zine
+# 📖 Zine 📖
+
+<p align="center">
+<img src="/src/assets/readme-images/0-zine-cover.png" alt="Capa do Projeto Zine" width="100%"/>
+</p>
 
 > Rabisque o mundo. Dobre o resto. Uma ferramenta web minimalista para transformar suas fotos em fanzines físicos de 8 páginas.
 
@@ -10,10 +14,10 @@ A aplicação abraça uma estética lo-fi, brutalista e texturizada na interface
 
 ## ⚡ O que ele faz (Features)
 
-* **Upload Flexível & Edição In-Browser:** Envie até 8 fotos (limite de 5MB por imagem). Um editor embutido permite aplicar zoom, reposicionar (pan), girar e espelhar as imagens para que o enquadramento fique perfeito antes da geração.
-* **Engenharia de Layout Automática:** Desenvolvido com `jsPDF`, o sistema calcula as coordenadas matemáticas no plano cartesiano do PDF. As imagens da fileira superior são automaticamente rotacionadas em 180°. O resultado? Uma folha A4 que, ao ser cortada e dobrada, gera um livreto sequencial sem nenhuma página de ponta-cabeça.
-* **Wiggly UI:** A interface ganha vida com um visual de "rabisco em stop-motion". Esse efeito é criado de forma nativa e performática manipulando SVG (`feTurbulence` e `feDisplacementMap`), aplicado aos botões, bordas e modais, sem poluir suas fotos.
-* **Client-Side Puro:** Todo o processamento de imagens (crop, canvas) e a geração do PDF acontecem localmente no navegador do usuário, garantindo privacidade e velocidade.
+- **Upload Flexível & Edição In-Browser:** Envie até 8 fotos (limite de 5MB por imagem). Um editor embutido permite aplicar zoom, reposicionar (pan), girar e espelhar as imagens para que o enquadramento fique perfeito antes da geração.
+- **Engenharia de Layout Automática:** Desenvolvido com `jsPDF`, o sistema calcula as coordenadas matemáticas no plano cartesiano do PDF. As imagens da fileira superior são automaticamente rotacionadas em 180°. O resultado? Uma folha A4 que, ao ser cortada e dobrada, gera um livreto sequencial sem nenhuma página de ponta-cabeça.
+- **Wiggly UI:** A interface ganha vida com um visual de "rabisco em stop-motion". Esse efeito é criado de forma nativa e performática manipulando SVG (`feTurbulence` e `feDisplacementMap`), aplicado aos botões, bordas e modais, sem poluir suas fotos.
+- **Client-Side Puro:** Todo o processamento de imagens (crop, canvas) e a geração do PDF acontecem localmente no navegador do usuário, garantindo privacidade e velocidade.
 
 ---
 
@@ -33,21 +37,32 @@ O PDF gerado possui marcações visuais pontilhadas para guiar a montagem. O pro
 A experiência visual é guiada pela tipografia monoespaçada `Martian Mono` e uma paleta de contraste focada no Azul Monocromático (`#0038a8`).
 
 ### 💻 Splashscreen
+
 <img src="/src/assets/readme-images/1-splash.jpeg" width="30%" alt="SplashScreen (tela de introdução)" />
 
 ### 🔔 Tela de Upload e Ajustes
+
 <img src="/src/assets/readme-images/2-upload.jpeg" width="30%" alt="Tela de Upload" />
 
 ### ⚡ Tela de Download
+
 <img src="/src/assets/readme-images/3-download.jpeg" width="30%" alt="Tela de Download" />
 
 ---
 
-## 🛠️ Tecnologias Utilizadas
+Tecnologias Utilizadas
 
-* **React & TypeScript:** Tipagem estática e arquitetura baseada em componentes.
-* **Framer Motion:** Orquestração de animações de entrada/saída de rotas e modais (`AnimatePresence`), transições fluidas e controle de caminhos SVG (`pathLength`).
-* **jsPDF:** Geração do documento no lado do cliente.
-* **HTML Canvas API:** Manipulação de pixels para o sistema de crop, escala e rotação no modal de edição de imagem.
-* **SVG Filters:** Criação do efeito visual principal da interface, dispensando a necessidade de bibliotecas externas pesadas ou GIFs/Vídeos para as animações orgânicas.
-* **Web Share API:** Tratamento responsivo para download e compartilhamento nativo em dispositivos móveis, contornando bloqueios de navegadores in-app (como o do Instagram).
+- **React & TypeScript:** Tipagem estática e arquitetura baseada em componentes.
+- **Framer Motion:** Orquestração de animações de entrada/saída de rotas e modais (`AnimatePresence`), transições fluidas e controle de caminhos SVG (`pathLength`).
+- **jsPDF:** Geração do documento no lado do cliente.
+- **HTML Canvas API:** Manipulação de pixels para o sistema de crop, escala e rotação no modal de edição de imagem.
+- **SVG Filters:** Criação do efeito visual principal da interface, dispensando a necessidade de bibliotecas externas pesadas ou GIFs/Vídeos para as animações orgânicas.
+- **Web Share API:** Tratamento responsivo para download e compartilhamento nativo em dispositivos móveis, contornando bloqueios de navegadores in-app (como o do Instagram).
+
+---
+
+Nascido do atrito entre o analógico e o pixel, e de um amor pela estética crua e imperfeita do "faça você mesmo".
+Rabiscado pelas mãos de Pedro Paulo (PP). Desenvolvedor, designer e um artesão digital que transforma a rigidez do código em recortes, dobras e texturas táteis.
+
+- 📧 **E-mail:** [spedrobreno.2012@hotmail.com](mailto:spedrobreno.2012@hotmail.com)
+- 💼 **LinkedIn:** [linkedin.com/in/pp-oliveira](https://www.linkedin.com/in/pp-oliveira/)
