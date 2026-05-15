@@ -18,7 +18,7 @@ interface WigglySvgProps {
 
 const PAGE_LABELS = [
   "Capa",
-  "Contra-capa",
+  "Verso",
   "Pág 6",
   "Pág 5",
   "Pág 1",
