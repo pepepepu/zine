@@ -71,23 +71,62 @@ const WigglySvg = ({
   </svg>
 );
 
-const prepareImage = (url: string, rotate180: boolean): Promise<string> => {
+const prepareImage = (
+  url: string,
+  rotate180: boolean,
+  targetRatio: number,
+): Promise<string> => {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.crossOrigin = "Anonymous";
     img.onload = () => {
       const canvas = document.createElement("canvas");
-      canvas.width = img.width;
-      canvas.height = img.height;
+      const imgRatio = img.width / img.height;
+
+      let drawWidth = img.width;
+      let drawHeight = img.height;
+      let offsetX = 0;
+      let offsetY = 0;
+
+      if (imgRatio > targetRatio) {
+        drawWidth = img.height * targetRatio;
+        offsetX = (img.width - drawWidth) / 2;
+      } else {
+        drawHeight = img.width / targetRatio;
+        offsetY = (img.height - drawHeight) / 2;
+      }
+
+      canvas.width = drawWidth;
+      canvas.height = drawHeight;
       const ctx = canvas.getContext("2d");
       if (!ctx) return reject();
 
       if (rotate180) {
-        ctx.translate(canvas.width / 2, canvas.height / 2);
+        ctx.translate(drawWidth / 2, drawHeight / 2);
         ctx.rotate(Math.PI);
-        ctx.drawImage(img, -img.width / 2, -img.height / 2);
+        ctx.drawImage(
+          img,
+          offsetX,
+          offsetY,
+          drawWidth,
+          drawHeight,
+          -drawWidth / 2,
+          -drawHeight / 2,
+          drawWidth,
+          drawHeight,
+        );
       } else {
-        ctx.drawImage(img, 0, 0);
+        ctx.drawImage(
+          img,
+          offsetX,
+          offsetY,
+          drawWidth,
+          drawHeight,
+          0,
+          0,
+          drawWidth,
+          drawHeight,
+        );
       }
       resolve(canvas.toDataURL("image/jpeg", 0.9));
     };
@@ -149,6 +188,7 @@ export default function DownloadScreen() {
 
     const colW = availableWidth / 4;
     const rowH = availableHeight / 2;
+    const targetRatio = colW / rowH;
 
     const gridMap = [
       { idx: 0, col: 0, row: 0, rot: true },
@@ -165,7 +205,7 @@ export default function DownloadScreen() {
       const imgUrl = images[item.idx];
       if (imgUrl) {
         try {
-          const base64 = await prepareImage(imgUrl, item.rot);
+          const base64 = await prepareImage(imgUrl, item.rot, targetRatio);
           doc.addImage(
             base64,
             "JPEG",
